@@ -1,6 +1,6 @@
 import React from 'react';
 import burgerLogo from '../../assets/images/logo.png';
-import classes from './Logo.css'
+import classes from './Logo.css';
 
 const logo = (props) => (
   <div className={classes.Logo}>
@@ -8,4 +8,4 @@ const logo = (props) => (
   </div>
 );
 
-export default logo
+export default logo;
