@@ -3,36 +3,25 @@ import { connect } from 'react-redux';
 import Burger from '../../components/Burger/Burger';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls';
 import Auxiliary from "../../hoc/Auxiliary/Auxiliary";
+import axios from '../../axios-orders';
 import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
-import axios from '../../axios-orders';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
-import * as burgerBuilderActions from '../../store/actions/index';
+import * as actions from '../../store/actions/index';
 
 
 class BurgerBuilder extends Component {
   state = {
     purchaseable: false, 
     purchasing: false, 
-    loading: false, 
-    error: false
   }
 
   componentDidMount () {
-    // axios.get('https://react-burger-builder-f87e9.firebaseio.com/ingredients.json')
-    //   .then(response => {
-    //     this.setState({
-    //       ingredients: response.data
-    //     })
-    //   })
-    //   .catch(err => {
-    //     this.setState({error: true})
-    //   })
+    this.props.onInitIngredients();
   }
 
   updatePurchaseState = (updatedIngredients) => {
-
     const sum = Object.keys(updatedIngredients)
       .map(ingName => {
         return updatedIngredients[ingName]
@@ -40,7 +29,6 @@ class BurgerBuilder extends Component {
       .reduce((sum, el) => {
         return sum + el;
       }, 0);
-
     return sum > 0
   }
 
@@ -57,7 +45,8 @@ class BurgerBuilder extends Component {
   }
 
   purchaseContinueHandler = () => {
-    this.props.history.push('/checkout')
+    this.props.onInitPurchase();
+    this.props.history.push('/checkout');
   }
 
   render() {
@@ -70,7 +59,7 @@ class BurgerBuilder extends Component {
     }
 
     let orderSummary = null
-    let burger = this.state.error ? <p>Ingredients can't be loaded</p> : <Spinner />;
+    let burger = this.props.error ? <p>Ingredients can't be loaded</p> : <Spinner />;
 
     if (this.props.ings) {
       burger = (
@@ -87,10 +76,10 @@ class BurgerBuilder extends Component {
       );
 
       orderSummary = <OrderSummary 
-      ingredients={this.props.ings}
-      purchaseCancelled={this.purchaseCancelHandler}
-      purchaseContinued={this.purchaseContinueHandler}
-      price={this.props.price} />
+        ingredients={this.props.ings}
+        purchaseCancelled={this.purchaseCancelHandler}
+        purchaseContinued={this.purchaseContinueHandler}
+        price={this.props.price} />
     }
 
     if (this.state.loading) {
@@ -110,15 +99,18 @@ class BurgerBuilder extends Component {
 }
 const mapStateToProps = state => {
   return {
-    ings: state.ingredients, 
-    price: state.totalPrice
+    ings: state.burgerBuilder.ingredients, 
+    price: state.burgerBuilder.totalPrice,
+    error: state.burgerBuilder.error
   };
 }
 
 const mapDispatchToProps = dispatch => {
   return {
-    onIngredientAdded: (ingName) => dispatch(burgerBuilderActions.addIngredient(ingName)), 
-    onIngredientRemoved: (ingName) => dispatch(burgerBuilderActions.removeIngredient(ingName))
+    onIngredientAdded: (ingName) => dispatch(actions.addIngredient(ingName)), 
+    onIngredientRemoved: (ingName) => dispatch(actions.removeIngredient(ingName)),
+    onInitIngredients: () => dispatch(actions.intiIngredients()),
+    onInitPurchase: () => dispatch(actions.purchaseInit())
   };
 }
 
